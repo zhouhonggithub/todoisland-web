@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ToDoIsLand — 住在刘海里的效率岛</title>
   <meta name="description" content="一款住在 Mac 刘海里的效率工具，集待办、番茄钟、便笺、白噪音于一体。" />
-  <link rel="icon" href="assets/appicon.png" />
+  <link rel="icon" href="assets/logo2.png" />
   <style>
     @font-face {
       font-family: 'zpix';
@@ -36,7 +36,12 @@
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--bg);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(255,255,255,0.032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.032) 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-position: 0 0;
       color: var(--text);
       font-family: 'zpix', monospace;
       min-height: 100vh;
@@ -286,8 +291,38 @@
       cursor: pointer;
       padding: 34px;
       transition: border-color 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
     }
-    .feature-card:hover { background-color: rgba(255,255,255,0.15);  }
+    /* 像素反光：顶部隔格像素点 */
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 2px,
+        transparent 2px, transparent 5px
+      );
+      pointer-events: none;
+    }
+    /* 像素阶梯角裁切 */
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        linear-gradient(135deg, var(--bg-card) 4px, transparent 4px),
+        linear-gradient(225deg, var(--bg-card) 4px, transparent 4px),
+        linear-gradient(315deg, var(--bg-card) 4px, transparent 4px),
+        linear-gradient(45deg,  var(--bg-card) 4px, transparent 4px);
+      background-position: top left, top right, bottom right, bottom left;
+      background-size: 6px 6px;
+      background-repeat: no-repeat;
+      pointer-events: none;
+    }
+    .feature-card:hover { background-color: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
 
     .feature-icon {
       width: 40px; height: 40px;
@@ -447,6 +482,13 @@
       opacity: 0;
     }
 
+    #grid-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     /* ── 大鹅展示区 ── */
     .goose-stage {
       width: 100%;
@@ -501,6 +543,7 @@
 <body>
 
 <canvas id="pixel-ripple"></canvas>
+<canvas id="grid-glow"></canvas>
 
 <!-- ── HERO ── -->
 <section class="hero">
@@ -871,6 +914,77 @@
 
     requestAnimationFrame(draw);
   }
+
+  // ── 网格点阵鼠标发光 ──
+  (function () {
+    const canvas = document.getElementById('grid-glow');
+    const ctx    = canvas.getContext('2d');
+    const CELL   = 20;       // 与 CSS background-size 一致
+    const RADIUS = 120;      // 发光影响半径（px）
+    const DOT    = 1.5;      // 点的像素大小
+    const COLOR  = '126,184,247'; // 水蓝，与 --accent 一致
+
+    let mouseX = -9999, mouseY = -9999;
+    let raf = null;
+    let dirty = true;
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      dirty = true;
+    }
+
+    function draw() {
+      if (!dirty) { raf = requestAnimationFrame(draw); return; }
+      dirty = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 计算覆盖范围内的交叉点
+      const scrollY = window.scrollY;
+      const x0 = Math.floor((mouseX - RADIUS) / CELL) * CELL;
+      const x1 = Math.ceil((mouseX + RADIUS) / CELL)  * CELL;
+      const y0 = Math.floor((mouseY + scrollY - RADIUS) / CELL) * CELL;
+      const y1 = Math.ceil((mouseY + scrollY + RADIUS) / CELL)  * CELL;
+
+      for (let gx = x0; gx <= x1; gx += CELL) {
+        for (let gy = y0; gy <= y1; gy += CELL) {
+          const sx = gx;
+          const sy = gy - scrollY;  // 转换为屏幕坐标
+          const dx = sx - mouseX;
+          const dy = sy - mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > RADIUS) continue;
+
+          // 距离越近越亮，边缘平滑衰减
+          const t = 1 - dist / RADIUS;
+          const alpha = t * t * 0.75;  // 平方衰减，边缘更柔和
+
+          ctx.fillStyle = `rgba(${COLOR},${alpha})`;
+          ctx.fillRect(sx - DOT / 2, sy - DOT / 2, DOT, DOT);
+        }
+      }
+
+      raf = requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dirty = true;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      mouseX = -9999;
+      mouseY = -9999;
+      dirty = true;
+    });
+
+    window.addEventListener('scroll', () => { dirty = true; }, { passive: true });
+    window.addEventListener('resize', resize);
+
+    resize();
+    raf = requestAnimationFrame(draw);
+  })();
 </script>
 </body>
 </html>
