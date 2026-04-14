@@ -1,0 +1,876 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ToDoIsLand — 住在刘海里的效率岛</title>
+  <meta name="description" content="一款住在 Mac 刘海里的效率工具，集待办、番茄钟、便笺、白噪音于一体。" />
+  <link rel="icon" href="assets/appicon.png" />
+  <style>
+    @font-face {
+      font-family: 'zpix';
+      src: url('assets/zpix.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c0c0c;
+      --bg-card: #141414;
+      --border: rgba(255,255,255,0.07);
+      --accent: #7eb8f7;
+      --accent2: #a78bfa;
+      --text: #f0f0f0;
+      --muted: #666;
+      --island-bg: #000;
+      --green: #30d158;
+      --orange: #ffb340;
+      --red: #ff453a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'zpix', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(126,184,247,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      font-family: 'zpix', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 28px;
+    }
+    .badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    h1 {
+      font-family: 'zpix', monospace;
+      font-size: clamp(32px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.1;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    h1 .accent { color: var(--accent); }
+
+    .hero-sub {
+      font-size: clamp(14px, 2vw, 17px);
+      color: var(--muted);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 72px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { background: #a8cdf9; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+    /* ── 截图展示 ── */
+    .screenshots {
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* ── 轮播 ── */
+    .carousel {
+      width: 100%;
+      position: relative;
+    }
+
+    .carousel-track {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+      height: 700px;
+      position: relative;
+    }
+
+    .carousel-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .carousel-slide.active { opacity: 1; }
+
+    .carousel-slide img {
+          width: 100%;
+    height: auto;
+    display: block;
+    
+    }
+
+    /* 指示点 */
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      border: none;
+      padding: 0;
+    }
+    .carousel-dot.active {
+      background: var(--accent);
+      transform: scale(1.3);
+    }
+
+    /* 左右箭头 */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.4);
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      z-index: 5;
+    }
+    .carousel-arrow:hover { background: rgba(0,0,0,0.7); color: #fff; }
+    .carousel-arrow.prev { left: -48px; }
+    .carousel-arrow.next { right: -48px; }
+
+    @media (max-width: 700px) {
+      .carousel-arrow.prev { left: 8px; }
+      .carousel-arrow.next { right: 8px; }
+    }
+
+    /* ── FEATURES ── */
+    .section {
+      padding: 80px 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'zpix', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'zpix', monospace;
+      font-size: clamp(22px, 3.5vw, 36px);
+      font-weight: 700;
+      margin-bottom: 48px;
+      line-height: 1.2;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      
+    }
+    /* 第1行：1个居中，占中间2列 */
+    .features-grid .feature-card:nth-child(1) {
+      grid-column: 3 / 5;
+      grid-row: 1;
+    }
+    /* 第2行：3个均分 */
+    .features-grid .feature-card:nth-child(2) {
+      grid-column: 1 / 3;
+      grid-row: 2;
+    }
+    .features-grid .feature-card:nth-child(3) {
+      grid-column: 3 / 5;
+      grid-row: 2;
+    }
+    .features-grid .feature-card:nth-child(4) {
+      grid-column: 5 / 7;
+      grid-row: 2;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      padding: 34px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { background-color: rgba(255,255,255,0.15);  }
+
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+
+    .feature-icon.blue { background: rgba(126,184,247,0.12); }
+    .feature-icon.purple { background: rgba(167,139,250,0.12); }
+    .feature-icon.green { background: rgba(48,209,88,0.12); }
+    .feature-icon.orange { background: rgba(255,179,64,0.12); }
+
+    .feature-icon-img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+
+    .feature-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    /* ── PIXEL SHOWCASE ── */
+    .pixel-section {
+      padding: 60px 24px;
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 640px) { .pixel-section { grid-template-columns: 1fr; } }
+
+    .pixel-preview {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pixel-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .toggle-track {
+      width: 36px; height: 20px;
+      border-radius: 10px;
+      background: var(--accent);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px; left: 18px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .pixel-label { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+    .pixel-text-demo { display: flex; flex-direction: column; gap: 6px; }
+    .pixel-row { display: flex; align-items: center; gap: 8px; }
+    .pixel-tag {
+      padding: 3px 8px; border-radius: 4px;
+      font-size: 10px;
+      border: 1px solid rgba(126,184,247,0.4);
+      background: rgba(126,184,247,0.08);
+      color: var(--accent);
+      font-family: 'zpix', monospace;
+    }
+    .pixel-val { font-size: 11px; color: rgba(255,255,255,0.5); font-family: 'zpix', monospace; }
+
+    /* ── DOWNLOAD ── */
+    .download-section {
+      padding: 100px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .download-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(126,184,247,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .download-title {
+      font-family: 'zpix', monospace;
+      font-size: clamp(24px, 4vw, 42px);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .download-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .req-list {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .req-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted);
+    }
+    .req-item span { color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 32px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── 像素风切换按钮 ── */
+    .btn-pixel {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-pixel:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+    .btn-pixel.pixel-on {
+      border-color: rgba(126,184,247,0.5);
+      background: rgba(126,184,247,0.1);
+      color: var(--accent);
+    }
+
+    /* 像素风模式下整页字体 */
+    body.pixel-mode * { font-family: 'zpix', monospace !important; }
+
+    /* 扩散波纹 canvas */
+    #pixel-ripple {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+    }
+
+    /* ── 大鹅展示区 ── */
+    .goose-stage {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 48px;
+      padding: 32px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .goose-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      width: 150px;
+      height: 150px;
+      border: 5px solid #d1d1d1;
+      border-radius: 75px;
+    }
+
+     .goose-card:hover{
+      border: 8px solid #49b13f;
+    }
+    .goose-canvas {
+      image-rendering: pixelated;
+      /* 5倍放大：原帧 64×64 → 320×320 */
+      width: 320px;
+      height: 320px;
+      display: block;
+      transition: filter 0.2s;
+    }
+    .goose-card:hover .goose-canvas { filter: brightness(1.2); }
+    .goose-card:active .goose-canvas { filter: brightness(1.4); }
+
+    .goose-label {
+      font-family: 'zpix', monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<canvas id="pixel-ripple"></canvas>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  
+
+  <!-- 大鹅展示区 -->
+  <div class="goose-stage">
+    <div class="goose-card" onclick="gooseClick()">
+      
+      <canvas class="goose-canvas" id="goose-main" width="64" height="64"></canvas>
+    </div>
+  </div>
+
+  <h1>住在刘海里的<br><span class="accent">效率岛</span></h1>
+  <p class="hero-sub">ToDoIsLand 将待办、番茄钟、便笺与白噪音融合在 Mac 刘海中，不打扰，随时在。</p>
+
+  <div class="hero-cta">
+    <a href="#download" class="btn btn-primary">AppStore下载</a>
+    <a href="#features" class="btn btn-secondary">了解功能</a>
+    
+  </div>
+
+  <!-- 轮播截图 -->
+  <div class="screenshots">
+    <div class="carousel">
+      <button class="carousel-arrow prev" onclick="carouselMove(-1)">&#8249;</button>
+      <div class="carousel-track">
+        <div class="carousel-slide active"><img src="assets/1.png" alt="主界面" /></div>
+        <div class="carousel-slide"><img src="assets/xs1.png" alt="待办清单" /></div>
+        <div class="carousel-slide"><img src="assets/xs2.png" alt="番茄钟" /></div>
+        <div class="carousel-slide"><img src="assets/xs3.png" alt="白噪音" /></div>
+      </div>
+      <button class="carousel-arrow next" onclick="carouselMove(1)">&#8250;</button>
+      <div class="carousel-dots">
+        <button class="carousel-dot active" onclick="carouselGo(0)"></button>
+        <button class="carousel-dot" onclick="carouselGo(1)"></button>
+        <button class="carousel-dot" onclick="carouselGo(2)"></button>
+        <button class="carousel-dot" onclick="carouselGo(3)"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+  <div class="section-label">功能特性</div>
+  <h2 class="section-title">一个刘海，四种能力</h2>
+  <div class="features-grid">
+    <div class="feature-card" style="border-radius:10px 10px 0px 0px">
+      <div class="feature-icon "><img src="assets/pixel-todo.png" alt="todo" class="feature-icon-img" /></div>
+      <div class="feature-title">待办清单</div>
+      <div class="feature-desc">轻量的任务管理，支持提醒、历史记录，完成进度实时显示在刘海。</div>
+    </div>
+    <div class="feature-card" style="border-radius:10px 0px 0px 10px">
+      <div class="feature-icon "><img src="assets/pixel-pomodoro.png" alt="pomodoro" class="feature-icon-img" /></div>
+      <div class="feature-title">番茄钟</div>
+      <div class="feature-desc">专注/休息循环管理，像素风水波动画，自定义时间段，配套背景音乐。</div>
+    </div>
+    <div class="feature-card" style="border-left: 0px; border-top: 0px;border-right: 0px;">
+      <div class="feature-icon "><img src="assets/pixel-txt.png" alt="notes" class="feature-icon-img" /></div>
+      <div class="feature-title">便笺记录</div>
+      <div class="feature-desc">随手记录灵感，多篇便笺管理，设置中可随时回看历史内容。</div>
+    </div>
+    <div class="feature-card" style="border-radius:0px 10px 10px 0px">
+      <div class="feature-icon "><img src="assets/pixel-music.png" alt="music" class="feature-icon-img" /></div>
+      <div class="feature-title">白噪音</div>
+      <div class="feature-desc">森林、溪流、雨声等多种环境音，自由混音，配合番茄钟专注工作。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PIXEL SECTION ── -->
+<section style="padding: 0 24px 80px; max-width: 960px; margin: 0 auto;">
+  <div class="pixel-section" style="padding: 0; max-width: 100%;">
+    <div>
+      <div class="section-label">像素风模式</div>
+      <h2 class="section-title" style="margin-bottom: 16px;">一键切换<br>像素美学</h2>
+      <p style="font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px;">
+        内置 zpix 像素字体，支持中文、日文、英文全字符集。开启后整体 UI 切换为像素风，包括字体、图标、动画效果。
+      </p>
+      <div class="pixel-toggle">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="pixel-label">像素风已开启</span>
+      </div>
+    </div>
+    <div class="pixel-preview">
+      <div class="pixel-text-demo">
+        <div class="pixel-row"><div class="pixel-tag">FONT</div><div class="pixel-val">zpix — 中日英全字符</div></div>
+        <div class="pixel-row"><div class="pixel-tag">ICON</div><div class="pixel-val">像素 Tab 图标切换</div></div>
+        <div class="pixel-row"><div class="pixel-tag">ANIM</div><div class="pixel-val">像素粒子水波光环</div></div>
+        <div class="pixel-row"><div class="pixel-tag">STAR</div><div class="pixel-val">星空背景环绕效果</div></div>
+      </div>
+      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 6px; flex-wrap: wrap;">
+        <img src="assets/pixel-todo.png" style="width:18px;height:18px;image-rendering:pixelated;" />
+        <img src="assets/pixel-pomodoro.png" style="width:18px;height:18px;image-rendering:pixelated;" />
+        <img src="assets/pixel-txt.png" style="width:18px;height:18px;image-rendering:pixelated;" />
+        <img src="assets/pixel-music.png" style="width:18px;height:18px;image-rendering:pixelated;" />
+        <span style="font-size:11px;color:var(--muted);margin-left:4px;">像素风 Tab 图标</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DOWNLOAD ── -->
+<section class="download-section" id="download">
+  <div class="section-label" style="margin-bottom: 16px;">立即体验</div>
+  <h2 class="download-title">免费下载</h2>
+  <p class="download-sub">ToDoIsLand 完全免费，无订阅，无广告。</p>
+  <a href="ToDoIsLand.dmg" class="btn btn-primary" style="font-size:15px; padding: 14px 32px;">
+    ⬇ 下载 ToDoIsLand.dmg
+  </a>
+  <div class="req-list">
+    <div class="req-item"><span>✓</span> macOS 14.0+</div>
+    <div class="req-item"><span>✓</span> Apple Silicon & Intel</div>
+    <div class="req-item"><span>✓</span> 带刘海的 MacBook</div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>ToDoIsLand &copy; 2026 · 住在刘海里的效率岛</p>
+</footer>
+
+<script>
+  // ── 大鹅 Sprite 动画 ──
+  const FRAME_SIZE = 64;   // 原始帧尺寸
+  const FRAME_INTERVAL = 180; // ms，与项目 0.18s 一致
+
+  const gooseSprites = {
+    idle: { src: 'assets/goose_idle.png', frames: 2 },
+    walk: { src: 'assets/goose_walk.png', frames: 4 },
+    run:  { src: 'assets/goose_run.png',  frames: 4 },
+    flap: { src: 'assets/goose_flap.png', frames: 4 },
+  };
+
+  // 预加载所有图片
+  const gooseImgs = {};
+  Object.entries(gooseSprites).forEach(([key, cfg]) => {
+    const img = new Image();
+    img.src = cfg.src;
+    gooseImgs[key] = img;
+  });
+
+  // 单只鹅状态
+  const gooseState = { anim: 'idle', frame: 0, timer: null, switching: false };
+  const randomAnims = ['idle', 'walk', 'run'];
+  const gooseSound = new Audio('assets/goose.mp3');
+
+  function drawGooseFrame(animKey, frameIdx) {
+    const canvas = document.getElementById('goose-main');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const img = gooseImgs[animKey];
+    if (!img.complete) { img.onload = () => drawGooseFrame(animKey, frameIdx); return; }
+    ctx.clearRect(0, 0, FRAME_SIZE, FRAME_SIZE);
+    ctx.drawImage(img, frameIdx * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE, 0, 0, FRAME_SIZE, FRAME_SIZE);
+  }
+
+  function startGooseAnim(animKey, onDone) {
+    if (gooseState.timer) clearInterval(gooseState.timer);
+    gooseState.anim = animKey;
+    gooseState.frame = 0;
+    const cfg = gooseSprites[animKey];
+    drawGooseFrame(animKey, 0);
+
+    if (onDone) {
+      let count = 0;
+      gooseState.timer = setInterval(() => {
+        gooseState.frame = (gooseState.frame + 1) % cfg.frames;
+        drawGooseFrame(animKey, gooseState.frame);
+        count++;
+        if (count >= cfg.frames) {
+          clearInterval(gooseState.timer);
+          onDone();
+        }
+      }, FRAME_INTERVAL);
+    } else {
+      gooseState.timer = setInterval(() => {
+        gooseState.frame = (gooseState.frame + 1) % cfg.frames;
+        drawGooseFrame(animKey, gooseState.frame);
+      }, FRAME_INTERVAL);
+    }
+  }
+
+  // 随机切换动作（每 3~6 秒换一次）
+  function scheduleRandomAnim() {
+    const delay = 3000 + Math.random() * 3000;
+    setTimeout(() => {
+      if (gooseState.switching) { scheduleRandomAnim(); return; }
+      const others = randomAnims.filter(a => a !== gooseState.anim);
+      const next = others[Math.floor(Math.random() * others.length)];
+      startGooseAnim(next);
+      scheduleRandomAnim();
+    }, delay);
+  }
+
+  function gooseClick() {
+    gooseSound.currentTime = 0;
+    gooseSound.play().catch(() => {});
+    const prev = gooseState.anim;
+    gooseState.switching = true;
+    startGooseAnim('flap', () => {
+      gooseState.switching = false;
+      startGooseAnim(prev);
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      startGooseAnim('idle');
+      scheduleRandomAnim();
+    }, 100);
+  });
+
+  // ── 轮播 ──
+  let curSlide = 0;
+  const slides = document.querySelectorAll('.carousel-slide');
+  const dots   = document.querySelectorAll('.carousel-dot');
+  let autoTimer = setInterval(() => carouselMove(1), 4000);
+
+  function carouselGo(n) {
+    slides[curSlide].classList.remove('active');
+    dots[curSlide].classList.remove('active');
+    curSlide = (n + slides.length) % slides.length;
+    slides[curSlide].classList.add('active');
+    dots[curSlide].classList.add('active');
+  }
+  function carouselMove(dir) { carouselGo(curSlide + dir); }
+
+  // ── 像素风切换 ──
+  const normalImgs = ['assets/1.png', 'assets/2.png', 'assets/3.png', 'assets/4.png'];
+  const pixelImgs  = ['assets/xs1.png', 'assets/xs2.png', 'assets/xs3.png', 'assets/xs3.png'];
+  let pixelOn = false;
+  let rippleRunning = false;
+
+  function togglePixel(e) {
+    if (rippleRunning) return;
+    const btn = document.getElementById('pixel-btn');
+    const rect = btn.getBoundingClientRect();
+    const ox = rect.left + rect.width / 2;
+    const oy = rect.top + rect.height / 2;
+    runWaveRipple(ox, oy, () => {
+      // 波纹扩散完毕后：切换状态并刷新
+      pixelOn = !pixelOn;
+      // 存到 sessionStorage，刷新后读取
+      sessionStorage.setItem('pixelOn', pixelOn ? '1' : '0');
+      location.reload();
+    });
+  }
+
+  // 刷新后恢复状态
+  window.addEventListener('DOMContentLoaded', () => {
+    const stored = sessionStorage.getItem('pixelOn');
+    if (stored === '1') {
+      pixelOn = true;
+      applyPixelState();
+    }
+  });
+
+  function applyPixelState() {
+    const btn = document.getElementById('pixel-btn');
+    btn.classList.toggle('pixel-on', pixelOn);
+    btn.textContent = pixelOn ? '⬜ 普通风' : '⬛ 像素风';
+    // 切换字体
+    document.body.style.fontFamily = pixelOn ? "'zpix', monospace" : "'zpix', monospace";
+    // 切换图片
+    slides.forEach((slide, i) => {
+      const img = slide.querySelector('img');
+      img.src = pixelOn ? pixelImgs[i] : normalImgs[i];
+    });
+  }
+
+  // ── 水波纹动画（仿番茄钟 BreathingHalo）──
+  function runWaveRipple(cx, cy, onComplete) {
+    rippleRunning = true;
+    const canvas = document.getElementById('pixel-ripple');
+    const ctx    = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.opacity = '1';
+
+    const RING_COUNT   = 5;
+    const RING_SPACING = 0.18;   // 每圈出发间隔（占 period 比例）
+    const PERIOD       = 3.2;    // 单圈扩散周期（秒）—— 越大越慢
+    const maxR = Math.hypot(
+      Math.max(cx, canvas.width - cx),
+      Math.max(cy, canvas.height - cy)
+    );
+    const baseR = 0;
+
+    // 水波颜色（与项目一致：浅蓝）
+    const R = 89, G = 210, B = 250; // rgb(89,210,250)
+
+    let startTs = null;
+    let done = false;
+
+    function draw(ts) {
+      if (!startTs) startTs = ts;
+      const elapsed = (ts - startTs) / 1000; // 秒
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let allGone = elapsed > PERIOD + RING_COUNT * RING_SPACING * PERIOD;
+
+      for (let i = 0; i < RING_COUNT; i++) {
+        const offset  = i * RING_SPACING * PERIOD;
+        if (elapsed < offset) continue;
+        const t       = elapsed - offset;
+        const raw     = (t % PERIOD) / PERIOD;             // 0→1 循环
+        // 只取第一圈（不循环）
+        if (t > PERIOD) continue;
+        // easing: 1 - pow(1-raw, 2.2)，与 Swift 一致
+        const progress = 1 - Math.pow(1 - raw, 2.2);
+        const radius   = baseR + (maxR - baseR) * progress;
+        const outerAlpha = 0.38 * Math.pow(1 - raw, 1.6);
+
+        // 内圈半径（上一圈的位置，没有则 baseR）
+        let innerR = baseR;
+        if (i + 1 < RING_COUNT) {
+          const prevOffset = (i + 1) * RING_SPACING * PERIOD;
+          if (elapsed >= prevOffset) {
+            const prevT    = elapsed - prevOffset;
+            if (prevT <= PERIOD) {
+              const prevRaw  = prevT / PERIOD;
+              const prevProg = 1 - Math.pow(1 - prevRaw, 2.2);
+              innerR = baseR + (maxR - baseR) * prevProg;
+            }
+          }
+        }
+
+        // 径向渐变填充环形区域
+        const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, radius);
+        grad.addColorStop(0,   `rgba(${R},${G},${B},0)`);
+        grad.addColorStop(0.4, `rgba(${R},${G},${B},${outerAlpha * 0.5})`);
+        grad.addColorStop(1,   `rgba(${R},${G},${B},${outerAlpha})`);
+
+        // 用 clip 画环形
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.arc(cx, cy, Math.max(innerR, 0), 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip('evenodd');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // 描边圆环
+        const lineWidth = 2.8 * (1 - progress) + 0.4;
+        const strokeAlpha = 0.55 * Math.pow(1 - raw, 1.6);
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${R},${G},${B},${strokeAlpha})`;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+      }
+
+      if (!done && allGone) {
+        done = true;
+        canvas.style.opacity = '0';
+        onComplete();
+        return;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  }
+</script>
+</body>
+</html>
