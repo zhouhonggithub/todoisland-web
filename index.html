@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ToDoIsLand — 住在刘海里的效率岛</title>
+  <title>ToDoIsLand — 住在刘海里的待办岛</title>
   <meta name="description" content="一款住在 Mac 刘海里的效率工具，集待办、番茄钟、便笺、白噪音于一体。" />
   <link rel="icon" href="assets/logo2.png" />
   <style>
@@ -145,6 +145,11 @@
       border: 1px solid var(--border);
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+    .goose-stage, .hero h1, .hero-sub, .hero-cta, .screenshots, .badge {
+      position: relative;
+      z-index: 1;
+    }
 
     /* ── 截图展示 ── */
     .screenshots {
@@ -552,12 +557,12 @@
   <!-- 大鹅展示区 -->
   <div class="goose-stage">
     <div class="goose-card" onclick="gooseClick()">
-      
+
       <canvas class="goose-canvas" id="goose-main" width="64" height="64"></canvas>
     </div>
   </div>
 
-  <h1>住在刘海里的<br><span class="accent">效率岛</span></h1>
+  <h1>住在刘海里的<br><span class="accent">待办岛</span></h1>
   <p class="hero-sub">ToDoIsLand 将待办、番茄钟、便笺与白噪音融合在 Mac 刘海中，不打扰，随时在。</p>
 
   <div class="hero-cta">
@@ -719,7 +724,7 @@
 
 <!-- ── FOOTER ── -->
 <footer>
-  <p>ToDoIsLand &copy; 2026 · 住在刘海里的效率岛 · <a href="#privacy" style="color: var(--muted); text-decoration: none;">隐私政策</a></p>
+  <p>ToDoIsLand &copy; 2026 · 住在刘海里的待办岛 · <a href="#privacy" style="color: var(--muted); text-decoration: none;">隐私政策</a></p>
 </footer>
 
 <script>
