@@ -172,7 +172,7 @@
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
-      height: 700px;
+      aspect-ratio: 16 / 10;
       position: relative;
     }
 
@@ -185,10 +185,10 @@
     .carousel-slide.active { opacity: 1; }
 
     .carousel-slide img {
-          width: 100%;
-    height: auto;
-    display: block;
-    
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     /* 指示点 */
@@ -268,84 +268,50 @@
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
     }
-    /* 第1行：1个居中，占中间2列 */
-    .features-grid .feature-card:nth-child(1) {
-      grid-column: 3 / 5;
-      grid-row: 1;
-    }
-    /* 第2行：3个均分 */
-    .features-grid .feature-card:nth-child(2) {
-      grid-column: 1 / 3;
-      grid-row: 2;
-    }
-    .features-grid .feature-card:nth-child(3) {
-      grid-column: 3 / 5;
-      grid-row: 2;
-    }
-    .features-grid .feature-card:nth-child(4) {
-      grid-column: 5 / 7;
-      grid-row: 2;
+
+    @media (max-width: 640px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     .feature-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      cursor: pointer;
-      padding: 34px;
-      transition: border-color 0.2s, transform 0.2s;
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
-    /* 像素反光：顶部隔格像素点 */
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 6px;
-      background: repeating-linear-gradient(
-        90deg,
-        rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 2px,
-        transparent 2px, transparent 5px
-      );
-      pointer-events: none;
+
+    .feature-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-2px);
     }
-    /* 像素阶梯角裁切 */
-    .feature-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background:
-        linear-gradient(135deg, var(--bg-card) 4px, transparent 4px),
-        linear-gradient(225deg, var(--bg-card) 4px, transparent 4px),
-        linear-gradient(315deg, var(--bg-card) 4px, transparent 4px),
-        linear-gradient(45deg,  var(--bg-card) 4px, transparent 4px);
-      background-position: top left, top right, bottom right, bottom left;
-      background-size: 6px 6px;
-      background-repeat: no-repeat;
-      pointer-events: none;
-    }
-    .feature-card:hover { background-color: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
 
     .feature-icon {
-      width: 40px; height: 40px;
-      border-radius: 10px;
+      width: 44px; height: 44px;
+      border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      margin-bottom: 14px;
+      flex-shrink: 0;
     }
 
-    .feature-icon.blue { background: rgba(126,184,247,0.12); }
-    .feature-icon.purple { background: rgba(167,139,250,0.12); }
-    .feature-icon.green { background: rgba(48,209,88,0.12); }
-    .feature-icon.orange { background: rgba(255,179,64,0.12); }
+    .feature-icon.blue   { background: rgba(126,184,247,0.12); box-shadow: 0 0 0 1px rgba(126,184,247,0.15); }
+    .feature-icon.purple { background: rgba(167,139,250,0.12); box-shadow: 0 0 0 1px rgba(167,139,250,0.15); }
+    .feature-icon.green  { background: rgba(48,209,88,0.12);   box-shadow: 0 0 0 1px rgba(48,209,88,0.15); }
+    .feature-icon.orange { background: rgba(255,179,64,0.12);  box-shadow: 0 0 0 1px rgba(255,179,64,0.15); }
 
-    .feature-icon-img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+    .feature-icon-img { width: 26px; height: 26px; object-fit: contain; image-rendering: pixelated; }
 
-    .feature-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .feature-body { display: flex; flex-direction: column; gap: 6px; }
+    .feature-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
 
     /* ── PIXEL SHOWCASE ── */
     .pixel-section {
@@ -543,6 +509,19 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    /* ── PIXEL DIVIDER ── */
+    .pixel-divider-wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 60px 0;
+      overflow: hidden;
+    }
+    .pixel-divider-canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
   </style>
 </head>
 <body>
@@ -576,10 +555,12 @@
     <div class="carousel">
       <button class="carousel-arrow prev" onclick="carouselMove(-1)">&#8249;</button>
       <div class="carousel-track">
-        <div class="carousel-slide active"><img src="assets/1.png" alt="主界面" /></div>
-        <div class="carousel-slide"><img src="assets/xs1.png" alt="待办清单" /></div>
-        <div class="carousel-slide"><img src="assets/xs2.png" alt="番茄钟" /></div>
-        <div class="carousel-slide"><img src="assets/xs3.png" alt="白噪音" /></div>
+        <div class="carousel-slide active"><img src="assets/show/index1.png" alt="引导页" /></div>
+        <div class="carousel-slide"><img src="assets/show/index2.png" alt="缩略态" /></div>
+        <div class="carousel-slide"><img src="assets/show/index3.png" alt="待办清单" /></div>
+        <div class="carousel-slide"><img src="assets/show/index4.png" alt="番茄钟" /></div>
+        <div class="carousel-slide"><img src="assets/show/index5.png" alt="便笺" /></div>
+        <div class="carousel-slide"><img src="assets/show/index6.png" alt="背景音" /></div>
       </div>
       <button class="carousel-arrow next" onclick="carouselMove(1)">&#8250;</button>
       <div class="carousel-dots">
@@ -587,6 +568,8 @@
         <button class="carousel-dot" onclick="carouselGo(1)"></button>
         <button class="carousel-dot" onclick="carouselGo(2)"></button>
         <button class="carousel-dot" onclick="carouselGo(3)"></button>
+        <button class="carousel-dot" onclick="carouselGo(4)"></button>
+        <button class="carousel-dot" onclick="carouselGo(5)"></button>
       </div>
     </div>
   </div>
@@ -598,25 +581,33 @@
   <div class="section-label">功能特性</div>
   <h2 class="section-title">一个刘海，四种能力</h2>
   <div class="features-grid">
-    <div class="feature-card" style="border-radius:10px 10px 0px 0px">
-      <div class="feature-icon "><img src="assets/pixel-todo.png" alt="todo" class="feature-icon-img" /></div>
-      <div class="feature-title">待办清单</div>
-      <div class="feature-desc">轻量的任务管理，支持提醒、历史记录，完成进度实时显示在刘海。</div>
+    <div class="feature-card">
+      <div class="feature-icon blue"><img src="assets/pixel-todo.png" alt="todo" class="feature-icon-img" /></div>
+      <div class="feature-body">
+        <div class="feature-title">待办清单</div>
+        <div class="feature-desc">轻量的任务管理，支持提醒、历史记录，完成进度实时显示在刘海。</div>
+      </div>
     </div>
-    <div class="feature-card" style="border-radius:10px 0px 0px 10px">
-      <div class="feature-icon "><img src="assets/pixel-pomodoro.png" alt="pomodoro" class="feature-icon-img" /></div>
-      <div class="feature-title">番茄钟</div>
-      <div class="feature-desc">专注/休息循环管理，像素风水波动画，自定义时间段，配套背景音乐。</div>
+    <div class="feature-card">
+      <div class="feature-icon orange"><img src="assets/pixel-pomodoro.png" alt="pomodoro" class="feature-icon-img" /></div>
+      <div class="feature-body">
+        <div class="feature-title">番茄钟</div>
+        <div class="feature-desc">专注/休息循环管理，像素风水波动画，自定义时间段，配套背景音乐。</div>
+      </div>
     </div>
-    <div class="feature-card" style="border-left: 0px; border-top: 0px;border-right: 0px;">
-      <div class="feature-icon "><img src="assets/pixel-txt.png" alt="notes" class="feature-icon-img" /></div>
-      <div class="feature-title">便笺记录</div>
-      <div class="feature-desc">随手记录灵感，多篇便笺管理，设置中可随时回看历史内容。</div>
+    <div class="feature-card">
+      <div class="feature-icon purple"><img src="assets/pixel-txt.png" alt="notes" class="feature-icon-img" /></div>
+      <div class="feature-body">
+        <div class="feature-title">便笺记录</div>
+        <div class="feature-desc">随手记录灵感，多篇便笺管理，设置中可随时回看历史内容。</div>
+      </div>
     </div>
-    <div class="feature-card" style="border-radius:0px 10px 10px 0px">
-      <div class="feature-icon "><img src="assets/pixel-music.png" alt="music" class="feature-icon-img" /></div>
-      <div class="feature-title">白噪音</div>
-      <div class="feature-desc">森林、溪流、雨声等多种环境音，自由混音，配合番茄钟专注工作。</div>
+    <div class="feature-card">
+      <div class="feature-icon green"><img src="assets/pixel-music.png" alt="music" class="feature-icon-img" /></div>
+      <div class="feature-body">
+        <div class="feature-title">白噪音</div>
+        <div class="feature-desc">森林、溪流、雨声等多种环境音，自由混音，配合番茄钟专注工作。</div>
+      </div>
     </div>
   </div>
 </section>
@@ -628,16 +619,12 @@
       <div class="section-label">像素风模式</div>
       <h2 class="section-title" style="margin-bottom: 16px;">一键切换<br>像素美学</h2>
       <p style="font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px;">
-        内置 zpix 像素字体，支持中文、日文、英文全字符集。开启后整体 UI 切换为像素风，包括字体、图标、动画效果。
+        内置 像素文字，支持中文、日文、英文全字符集。开启后整体 UI 切换为像素风，包括字体、图标、动画效果。
       </p>
-      <div class="pixel-toggle">
-        <div class="toggle-track"><div class="toggle-thumb"></div></div>
-        <span class="pixel-label">像素风已开启</span>
-      </div>
     </div>
     <div class="pixel-preview">
       <div class="pixel-text-demo">
-        <div class="pixel-row"><div class="pixel-tag">FONT</div><div class="pixel-val">zpix — 中日英全字符</div></div>
+        <div class="pixel-row"><div class="pixel-tag">FONT</div><div class="pixel-val">像素文字 — 中日英全字符</div></div>
         <div class="pixel-row"><div class="pixel-tag">ICON</div><div class="pixel-val">像素 Tab 图标切换</div></div>
         <div class="pixel-row"><div class="pixel-tag">ANIM</div><div class="pixel-val">像素粒子水波光环</div></div>
         <div class="pixel-row"><div class="pixel-tag">STAR</div><div class="pixel-val">星空背景环绕效果</div></div>
@@ -653,20 +640,11 @@
   </div>
 </section>
 
-<!-- ── DOWNLOAD ── -->
-<section class="download-section" id="download">
-  <div class="section-label" style="margin-bottom: 16px;">立即体验</div>
-  <h2 class="download-title">免费下载</h2>
-  <p class="download-sub">ToDoIsLand 完全免费，无订阅，无广告。</p>
-  <a href="ToDoIsLand.dmg" class="btn btn-primary" style="font-size:15px; padding: 14px 32px;">
-    ⬇ 下载 ToDoIsLand.dmg
-  </a>
-  <div class="req-list">
-    <div class="req-item"><span>✓</span> macOS 14.0+</div>
-    <div class="req-item"><span>✓</span> Apple Silicon & Intel</div>
-    <div class="req-item"><span>✓</span> 带刘海的 MacBook</div>
-  </div>
-</section>
+
+<!-- ── PIXEL DIVIDER ── -->
+<div class="pixel-divider-wrap">
+  <canvas id="pixelDivider" class="pixel-divider-canvas"></canvas>
+</div>
 
 <!-- ── PRIVACY ── -->
 <section class="section" id="privacy" style="padding-top: 60px; padding-bottom: 60px;">
@@ -1043,6 +1021,87 @@
 
     resize();
     raf = requestAnimationFrame(draw);
+  })();
+
+  // ── 像素方块分割动画 ──
+  (function() {
+    const canvas = document.getElementById('pixelDivider');
+    const ctx = canvas.getContext('2d');
+    const CELL = 8;
+    const COLS = 80;
+    const ROWS = 6;
+    const W = COLS * CELL;
+    const H = ROWS * CELL;
+    canvas.width  = W;
+    canvas.height = H;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+
+    // 起点：第4行第3格（0-indexed: row=3, col=2）
+    // 终点：第4行倒数第3格（col = COLS-3 = 77）
+    const START_ROW = 3;
+    const START_COL = 2;
+    const END_COL   = COLS - 3; // 77
+
+    const PALETTE = [
+      'rgba(126,184,247,0.85)',
+      'rgba(167,139,250,0.85)',
+      'rgba(48,209,88,0.75)',
+      'rgba(255,179,64,0.75)',
+    ];
+
+    // 光标位置（列，浮点）和方向
+    let cursor = START_COL;
+    let dir = 1; // 1=向右，-1=向左
+    const SPEED = 0.15; // 格/帧
+    const TRAIL = 6;   // 拖尾格数
+
+    // 每格记录当前 alpha 和颜色
+    const grid = [];
+    for (let c = 0; c < COLS; c++) {
+      grid[c] = { alpha: 0, color: PALETTE[0] };
+    }
+
+    // 光标当前颜色，到端点时换色
+    let colorIdx = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // 移动光标
+      cursor += dir * SPEED;
+      if (cursor >= END_COL) { cursor = END_COL; dir = -1; colorIdx = (colorIdx + 1) % PALETTE.length; }
+      if (cursor <= START_COL) { cursor = START_COL; dir = 1; colorIdx = (colorIdx + 1) % PALETTE.length; }
+
+      const head = Math.round(cursor);
+
+      // 更新 grid alpha：头部点亮，其余衰减
+      for (let c = 0; c < COLS; c++) {
+        const dist = Math.abs(c - head);
+        if (dist < TRAIL) {
+          // 拖尾渐变
+          grid[c].alpha = Math.max(grid[c].alpha, 1 - dist / TRAIL);
+          grid[c].color = PALETTE[colorIdx];
+        } else {
+          grid[c].alpha *= 0.82; // 衰减
+        }
+      }
+
+      // 绘制 START_ROW 那行的活跃格
+      for (let c = START_COL; c <= END_COL; c++) {
+        const a = grid[c].alpha;
+        if (a < 0.02) continue;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = grid[c].color;
+        ctx.fillRect(c * CELL, START_ROW * CELL, CELL - 1, CELL - 1);
+      }
+
+
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
   })();
 </script>
 </body>
